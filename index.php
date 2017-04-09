@@ -21,15 +21,39 @@ $client = new \GuzzleHttp\Client();
 //$org['public_repo_count'] = $data->public_repos;
 
 // 2. 获取repos信息
-$pages = 5;
+$pages = 1;
 $repoArr = [];
 
-for ($i = 0;$i<$pages;$i++){
+for ($i = 1; $i <= $pages; $i++) {
 
-    $repos = $client->request('GET','https://api.github.com/users/alibaba/repos?page='.$i);
+    $repos = $client->request('GET', 'https://api.github.com/users/alibaba/repos?page=' . $i);
     $repoData = json_decode($repos->getBody());
-    $repoArr = array_merge_recursive($repoArr,$repoData);
+    $repoArr = array_merge_recursive($repoArr, $repoData);
 }
 
-dd($repoArr);
+$data = [];
+foreach ($repoArr as $one) {
+    $repoInfo = $client->request('GET','https://api.github.com/repos/'.$one->full_name);
+    $repoInfoObj = json_decode($repoInfo->getBody());
+    $data [] = [
+        "name" => $one->name,
+        "fullname" => $one->full_name,
+        "is_private" => $one->private?"Yes":"No",
+        "created time" => $one->created_at,
+        "pushed time" => $one->pushed_at,
+        "updated time" => $one->updated_at,
+        "language" => $one->language,
+        "star" => $repoInfoObj->stargazers_count,
+        "watcher" => $repoInfoObj->watchers_count,
+        "default_branch" => $one->default_branch,
+        "subscribers_count" => $repoInfoObj->subscribers_count,
+        "Forks" => $one->forks_count,
+        "Open Issue" => $one->open_issues
+     ];
+}
 
+
+// 3. 以 CSV 形式输出
+
+$csvObj = new mnshankar\CSV\CSV();
+return $csvObj->fromArray($data)->render('download.csv');

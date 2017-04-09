@@ -1,6 +1,7 @@
 {
     "require": {
         "guzzlehttp/guzzle": "^6.2",
-        "larapack/dd": "^1.1"
+        "larapack/dd": "^1.1",
+        "mnshankar/CSV": "1.8"
     }
 }
