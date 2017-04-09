@@ -12,7 +12,7 @@ define("PASSWD",'');
  * 获取组织信息
  */
 
-$organizations = $client->request('GET','https://api.github.com/orgs/'.GROUP);
+$organizations = $client->request('GET','https://api.github.com/orgs/'.GROUP,array('auth' => array(USERNAME, PASSWD, 'Basic')));
 $orgObj = json_decode($organizations->getBody());
 /**
  * 公开 Repo 数目
@@ -22,7 +22,7 @@ $org['public_repo_count'] = $orgObj->public_repos;
 /**
  * 获取所有Repo
  */
-$repos = $client->request('GET', 'https://api.github.com/users/'.GROUP.'/repos?per_page=1000');
+$repos = $client->request('GET', 'https://api.github.com/users/'.GROUP.'/repos?per_page=1000',array('auth' => array(USERNAME, PASSWD, 'Basic')));
 $repoArr = json_decode($repos->getBody());
 
 $data = [];
@@ -33,29 +33,34 @@ foreach ($repoArr as $one) {
     /**
      * 获取 Repo 基本信息
      */
-    $repoInfo = $client->request('GET','https://api.github.com/repos/'.$one->full_name);
+    $repoInfo = $client->request('GET','https://api.github.com/repos/'.$one->full_name,array('auth' => array(USERNAME, PASSWD, 'Basic')));
     $repoInfoObj = json_decode($repoInfo->getBody());
-    $licenseObj = json_decode($client->get('https://api.github.com/repos/'.$one->full_name.'/license')->getBody());
-    $license = (isset($licenseObj->message))?$licenseObj->license->name:"No License";
+    try {
+        $licenseObj = $client->get('https://api.github.com/repos/'.$one->full_name.'/license',array(),array('auth' => array(USERNAME, PASSWD, 'Basic')));
+        $license = $licenseObj->license->name;
+    } catch (\GuzzleHttp\Exception\ClientException $e) {
+        $license ="No License";
+    }
+
     /**
      * 借助API 获取单项的信息
      */
-    $branchObj = json_decode($client->get('https://api.github.com/repos/'.$one->full_name.'/branches?per_page='.PAGESIZE)->getBody());
-    $commitObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/commits?per_page='.PAGESIZE)->getBody());
-    $releaseObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/releases?per_page='.PAGESIZE)->getBody());
+    $branchObj = json_decode($client->get('https://api.github.com/repos/'.$one->full_name.'/branches?per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $commitObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/commits?per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $releaseObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/releases?per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
 
-    $collaboratorsObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?per_page='.PAGESIZE)->getBody());
-    $outSideCollaborators = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?affiliation=outside&per_page='.PAGESIZE)->getBody());
-    $directCollaborators = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?affiliation=outside&per_page='.PAGESIZE)->getBody());
+    $collaboratorsObj = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $outSideCollaborators = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?affiliation=outside&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $directCollaborators = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/collaborators?affiliation=outside&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
 
-    $openPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=open&per_page='.PAGESIZE)->getBody());
-    $allPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=all&per_page='.PAGESIZE)->getBody());
-    $closedPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=closed&per_page='.PAGESIZE)->getBody());
+    $openPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=open&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $allPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=all&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $closedPR = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/pulls?state=closed&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
 
-    $allIssue = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/issues?state=all&per_page='.PAGESIZE)->getBody());
-    $closedIssue = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/issues?state=closed&per_page='.PAGESIZE)->getBody());
+    $allIssue = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/issues?state=all&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
+    $closedIssue = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/issues?state=closed&per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
 
-    $downloadFile = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/downloads?per_page='.PAGESIZE)->getBody());
+    $downloadFile = json_decode($client->get('api.github.com/repos/'.$one->full_name.'/downloads?per_page='.PAGESIZE,array(),array('auth' => array(USERNAME, PASSWD, 'Basic')))->getBody());
 
     $data [] = [
         "name" => $one->name,
