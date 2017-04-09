@@ -6,8 +6,8 @@ $client = new \GuzzleHttp\Client();
 
 define("GROUP","lctt");
 define("PAGESIZE",1000);
-
-
+define("USERNAME",'');
+define("PASSWD",'');
 /**
  * 获取组织信息
  */
